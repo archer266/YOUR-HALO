@@ -1,0 +1,28 @@
+/build/
+/dist/
+/.tools/
+.vscode/
+.idea/
+.vs/
+*.user
+*.suo
+*.VC.db
+*.VC.VC.opendb
+.DS_Store
+Thumbs.db
+
+# Compiled output and local build/test logs (including archived VST3 bundles).
+*.obj
+*.pdb
+*.ilk
+*.lib
+*.exp
+*.dll
+*.exe
+*.vst3
+*.zip
+*.log
+
+# Reproducible documentation captures; retain source artwork and static images.
+/Docs/**/AnimationFrames/
+/Docs/**/*.wav

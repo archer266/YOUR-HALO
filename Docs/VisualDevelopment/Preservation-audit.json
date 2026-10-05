@@ -1,0 +1,26 @@
+[
+  {
+    "path": "Source/DSP/HaloEngine.h",
+    "unchanged": true
+  },
+  {
+    "path": "Source/DSP/HaloEngine.cpp",
+    "unchanged": true
+  },
+  {
+    "path": "dist/YOUR HALO.vst3/Contents/x86_64-win/YOUR HALO.vst3",
+    "unchanged": true
+  },
+  {
+    "path": "dist/YOUR-HALO-1.0.0-Windows-x64.zip",
+    "unchanged": true
+  },
+  {
+    "path": "Assets/haloLogo.png",
+    "matches_supplied_original": true
+  },
+  {
+    "path": "build\\YOUR_HALO_artefacts\\Release\\VST3\\YOUR HALO.vst3\\Contents\\x86_64-win\\YOUR HALO.vst3",
+    "sha256": "569F9BCA69D8EA3040AAAEE11D8774AD5B1A69C5D27C31FE0364F54BD858F036"
+  }
+]

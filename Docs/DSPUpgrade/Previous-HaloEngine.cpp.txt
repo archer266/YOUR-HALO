@@ -1,0 +1,160 @@
+#include "HaloEngine.h"
+#include <cmath>
+namespace voxxlab
+{
+void Biquad::bell(double rate, double frequency, double q, double gainDb)
+{
+    const double a = std::pow(10.0, gainDb / 40.0);
+    const double w = juce::MathConstants<double>::twoPi * frequency / rate;
+    const double alpha = std::sin(w) / (2.0 * q), c = std::cos(w), d = 1.0 + alpha / a;
+    b0 = (1.0 + alpha * a) / d; b1 = -2.0 * c / d; b2 = (1.0 - alpha * a) / d;
+    a1 = -2.0 * c / d; a2 = (1.0 - alpha / a) / d;
+}
+void Biquad::shelf(double rate, double frequency, double gainDb)
+{
+    const double a = std::pow(10.0, gainDb / 40.0);
+    const double w = juce::MathConstants<double>::twoPi * frequency / rate;
+    const double c = std::cos(w), beta = std::sin(w) * std::sqrt(2.0 * a);
+    const double d = (a + 1.0) - (a - 1.0) * c + beta;
+    b0 = a * ((a + 1.0) + (a - 1.0) * c + beta) / d;
+    b1 = -2.0 * a * ((a - 1.0) + (a + 1.0) * c) / d;
+    b2 = a * ((a + 1.0) + (a - 1.0) * c - beta) / d;
+    a1 = 2.0 * ((a - 1.0) - (a + 1.0) * c) / d;
+    a2 = ((a + 1.0) - (a - 1.0) * c - beta) / d;
+}
+void Biquad::bandpass(double rate, double frequency, double q)
+{
+    const double w = juce::MathConstants<double>::twoPi * frequency / rate;
+    const double alpha = std::sin(w) / (2.0 * q), d = 1.0 + alpha;
+    b0 = alpha / d; b1 = 0; b2 = -alpha / d;
+    a1 = -2.0 * std::cos(w) / d; a2 = (1.0 - alpha) / d;
+}
+void Biquad::highpass(double rate, double frequency)
+{
+    const double w = juce::MathConstants<double>::twoPi * frequency / rate;
+    const double c = std::cos(w), alpha = std::sin(w) / std::sqrt(2.0), d = 1.0 + alpha;
+    b0 = (1.0 + c) * 0.5 / d; b1 = -(1.0 + c) / d; b2 = b0;
+    a1 = -2.0 * c / d; a2 = (1.0 - alpha) / d;
+}
+float Biquad::tick(float x) noexcept
+{
+    const double y = b0 * x + z1;
+    z1 = b1 * x - a1 * y + z2; z2 = b2 * x - a2 * y;
+    if (std::abs(z1) < 1.0e-24) z1 = 0;
+    if (std::abs(z2) < 1.0e-24) z2 = 0;
+    return static_cast<float>(y);
+}
+void HaloEngine::prepare(double rate, int)
+{
+    halo.reset(rate, 0.035);
+    energyPole = std::exp(-1.0 / (0.25 * rate));
+    gainPole = std::exp(-1.0 / (0.15 * rate));
+    attackPole = std::exp(-1.0 / (0.003 * rate));
+    releasePole = std::exp(-1.0 / (0.09 * rate));
+    for (auto& f : presence) f.bell(rate, std::min(3400.0, rate * 0.2), 0.65, 2.3);
+    for (auto& f : air) f.shelf(rate, std::min(10000.0, rate * 0.3), 3.4);
+    for (auto& f : detector) f.bandpass(rate, std::min(7000.0, rate * 0.25), 0.9);
+    for (auto& f : protection) f.shelf(rate, std::min(6500.0, rate * 0.25), -2.8);
+    sideHighpass.highpass(rate, 300.0);
+    reset();
+}
+void HaloEngine::reset()
+{
+    halo.setCurrentAndTargetValue(0.0f);
+    inputEnergy = outputEnergy = 0;
+    compensation = 1.0f;
+    bandEnergy = fullEnergy = 0; protectionMix = 0;
+    for (auto& f : presence) f.reset();
+    for (auto& f : air) f.reset();
+    for (auto& f : detector) f.reset();
+    for (auto& f : protection) f.reset();
+    sideHighpass.reset();
+}
+void HaloEngine::process(juce::AudioBuffer<float>& buffer, float amount) noexcept
+{
+    halo.setTargetValue(std::isfinite(amount) ? juce::jlimit(0.0f, 1.0f, amount) : 0.0f);
+    const int channels = std::min(2, buffer.getNumChannels());
+    for (int i = 0; i < buffer.getNumSamples(); ++i)
+    {
+        const float h = halo.getNextValue();
+        const float presenceMix = std::pow(h, 1.15f), airMix = std::pow(h, 1.25f);
+        std::array<float, 2> dry {}, wet {};
+        double inPower = 0, outPower = 0;
+        double bandPower = 0, fullPower = 0;
+        for (int ch = 0; ch < channels; ++ch)
+        {
+            const auto c = static_cast<size_t>(ch);
+            const float input = buffer.getSample(ch, i);
+            dry[c] = std::isfinite(input) ? juce::jlimit(-32.0f, 32.0f, input) : 0.0f;
+            const float p = dry[c] + presenceMix * (presence[c].tick(dry[c]) - dry[c]);
+            const float enhanced = p + airMix * (air[static_cast<size_t>(ch)].tick(p) - p);
+            // Odd, unity-small-signal transfer avoids DC bias. A small parallel
+            // blend keeps this non-oversampled stage restrained at every rate.
+            const float drive = 1.0f + 0.65f * h;
+            const float saturated = std::tanh(drive * enhanced) / drive;
+            wet[c] = enhanced + 0.12f * h * h * (saturated - enhanced);
+            inPower += static_cast<double>(dry[c]) * dry[c];
+            const double band = detector[c].tick(dry[c]);
+            bandPower = std::max(bandPower, band * band);
+            fullPower = std::max(fullPower, static_cast<double>(dry[c]) * dry[c]);
+        }
+        const auto follow = [this](double value, double previous)
+        {
+            const double pole = value > previous ? attackPole : releasePole;
+            const double result = pole * previous + (1.0 - pole) * value;
+            return result < 1.0e-24 ? 0.0 : result;
+        };
+        bandEnergy = follow(bandPower, bandEnergy);
+        fullEnergy = follow(fullPower, fullEnergy);
+        // Both an absolute level and a spectral ratio must be exceeded: quiet
+        // air and low-frequency vowels should not trigger a high-frequency cut.
+        const double ratio = std::sqrt(bandEnergy / std::max(1.0e-12, fullEnergy));
+        const float severity = static_cast<float>(juce::jlimit(0.0, 1.0, (std::sqrt(bandEnergy) - 0.045) / 0.12)
+            * juce::jlimit(0.0, 1.0, (ratio - 0.28) / 0.45));
+        const float desiredProtection = severity;
+        const double protectionPole = desiredProtection > protectionMix ? attackPole : releasePole;
+        protectionMix = static_cast<float>(protectionPole * protectionMix + (1.0 - protectionPole) * desiredProtection);
+        for (int ch = 0; ch < channels; ++ch)
+        {
+            const auto c = static_cast<size_t>(ch);
+            wet[c] += h * protectionMix * (protection[c].tick(wet[c]) - wet[c]);
+        }
+        if (channels == 2)
+        {
+            // Only existing side information is enhanced; identical L/R stays
+            // identical. Equal/opposite additions cancel exactly in the mono sum.
+            const float side = 0.5f * (wet[0] - wet[1]);
+            const float extraSide = 0.08f * h * h * sideHighpass.tick(side);
+            wet[0] += extraSide; wet[1] -= extraSide;
+        }
+        for (int ch = 0; ch < channels; ++ch)
+            outPower += static_cast<double>(wet[static_cast<size_t>(ch)]) * wet[static_cast<size_t>(ch)];
+        inputEnergy = energyPole * inputEnergy + (1.0 - energyPole) * inPower;
+        outputEnergy = energyPole * outputEnergy + (1.0 - energyPole) * outPower;
+        if (inputEnergy < 1.0e-24) inputEnergy = 0;
+        if (outputEnergy < 1.0e-24) outputEnergy = 0;
+        // Stereo-linked, slow RMS matching never boosts quiet passages or noise.
+        const float target = inputEnergy > 1.0e-10 && outputEnergy > 1.0e-10
+            ? static_cast<float>(juce::jlimit(0.76, 1.0, std::sqrt(inputEnergy / outputEnergy))) : 1.0f;
+        compensation = static_cast<float>(gainPole * compensation + (1.0 - gainPole) * target);
+        // Fade every stateful gain stage to unity along with HALO. Otherwise
+        // a lingering RMS/protection envelope could jump at the dry endpoint.
+        const float effectiveCompensation = 1.0f + h * (compensation - 1.0f);
+        float peak = 0;
+        for (int ch = 0; ch < channels; ++ch)
+            peak = std::max(peak, std::abs(wet[static_cast<size_t>(ch)] * effectiveCompensation));
+        const float knee = 1.0f - 0.1f * h;
+        const float margin = std::max(1.0e-9f, 0.09f * h);
+        const float safetyGain = peak > knee
+            ? (knee + margin * std::tanh((peak - knee) / margin)) / peak : 1.0f;
+        for (int ch = 0; ch < channels; ++ch)
+        {
+            const auto c = static_cast<size_t>(ch);
+            const float output = wet[c] * effectiveCompensation * safetyGain;
+            // No-lookahead safety knee. Exact bypass intentionally preserves
+            // even an already-overloaded input; active processing stays < 0 dBFS.
+            buffer.setSample(ch, i, h == 0.0f ? dry[c] : output);
+        }
+    }
+}
+}

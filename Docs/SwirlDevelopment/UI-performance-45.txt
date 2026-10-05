@@ -1,0 +1,9 @@
+Measured FPS: 44.375
+Median full editor paint ms: 1.763
+P95 full editor paint ms: 2.9213
+Median 64-sample callback ms: 0.0049
+P95 callback ms: 0.0064
+Approximate core-time share at requested FPS (median paint only): 7.9335%
+Unchanged engine median ms: 0.0042
+Processor-minus-engine median ms (meter and wrapper overhead): 0.0007
+Offscreen rendering using JUCE's default image backend; wall-time observations, not a CPU/GPU utilization measurement. Hardware/host scheduling may differ.

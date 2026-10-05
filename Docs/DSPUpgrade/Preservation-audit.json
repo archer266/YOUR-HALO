@@ -1,0 +1,44 @@
+﻿[
+    {
+        "Path":  "CMakeLists.txt",
+        "Baseline":  "0B9247B03740B2B87CC9AA7959321AB740938B4DB77B61BB85284C5581A79206",
+        "Current":  "02FCD60EEE20902308E46CCD2FF6A20B1D8A6DC74DF89FD2649289E75E5832BE",
+        "Unchanged":  false,
+        "ExpectedChange":  true
+    },
+    {
+        "Path":  "Assets/haloLogo.png",
+        "Baseline":  "F639EBC19DB470B995E36536A92045C9F84AA7B736102E8984C6C7A917B4C16A",
+        "Current":  "F639EBC19DB470B995E36536A92045C9F84AA7B736102E8984C6C7A917B4C16A",
+        "Unchanged":  true,
+        "ExpectedChange":  false
+    },
+    {
+        "Path":  "Source/UI/HaloOrbAnimation.h",
+        "Baseline":  "FE4A8C9052B4FA278196D033B90B24DBA824AED2014B46AEFA977EF91D0DDCB2",
+        "Current":  "FE4A8C9052B4FA278196D033B90B24DBA824AED2014B46AEFA977EF91D0DDCB2",
+        "Unchanged":  true,
+        "ExpectedChange":  false
+    },
+    {
+        "Path":  "Source/Metering/HaloAudioMeter.h",
+        "Baseline":  "8AB95BAA32882691CADF2C55E6653C9E0161A28F9B131653F718224F2F6130C0",
+        "Current":  "8AB95BAA32882691CADF2C55E6653C9E0161A28F9B131653F718224F2F6130C0",
+        "Unchanged":  true,
+        "ExpectedChange":  false
+    },
+    {
+        "Path":  "dist/YOUR HALO.vst3/Contents/x86_64-win/YOUR HALO.vst3",
+        "Baseline":  "F96AC1BD05F0DA11D0990860FD9C0ADFE62FB6483355CCA8BDF9EECB3FFFF9EC",
+        "Current":  "F96AC1BD05F0DA11D0990860FD9C0ADFE62FB6483355CCA8BDF9EECB3FFFF9EC",
+        "Unchanged":  true,
+        "ExpectedChange":  false
+    },
+    {
+        "Path":  "dist/YOUR-HALO-1.0.0-Windows-x64.zip",
+        "Baseline":  "C3007318189093838F0EAC27560A72AB5EF867B069E0BFF34B3BEC8C0A2513A8",
+        "Current":  "C3007318189093838F0EAC27560A72AB5EF867B069E0BFF34B3BEC8C0A2513A8",
+        "Unchanged":  true,
+        "ExpectedChange":  false
+    }
+]
