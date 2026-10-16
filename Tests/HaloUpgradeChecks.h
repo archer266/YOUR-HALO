@@ -78,7 +78,7 @@ void upgradeChecks(const juce::File& docs)
     }
     // Isolate the first sample at a mode switch from the underlying waveform.
     float worstSwitch = 0;
-    for (double rate : { 44100.0, 48000.0, 88200.0, 96000.0 })
+    for (double rate : { 44100.0, 48000.0, 88200.0, 96000.0, 176400.0, 192000.0 })
     for (int channels : { 1, 2 })
     for (int from = 0; from < 4; ++from)
     for (int to = 0; to < 4; ++to)
@@ -100,7 +100,7 @@ void upgradeChecks(const juce::File& docs)
             worstSwitch = std::max(worstSwitch, std::abs(switched.getSample(ch, 0) - reference.getSample(ch, 0)));
     }
     require(worstSwitch < .0005f, "mode switch produces an instantaneous pop");
-    std::cout << "All 16 mode transitions across four rates and mono/stereo, first-sample control discontinuity: " << worstSwitch << ": PASS\n";
+    std::cout << "All 16 mode transitions across six rates and mono/stereo, first-sample control discontinuity: " << worstSwitch << ": PASS\n";
     juce::String performance("Rate,Mode,median_callback_us,p95_callback_us,thread_CPU_duty_percent\n");
     const auto threadMs = []
     {
@@ -110,7 +110,7 @@ void upgradeChecks(const juce::File& docs)
         u.LowPart = user.dwLowDateTime; u.HighPart = user.dwHighDateTime;
         return static_cast<double>(k.QuadPart + u.QuadPart) * .0001;
     };
-    for (double rate : { 44100.0, 48000.0, 88200.0, 96000.0 })
+    for (double rate : { 44100.0, 48000.0, 88200.0, 96000.0, 176400.0, 192000.0 })
     for (int mode = 0; mode < 4; ++mode)
     {
         HaloProcessor processor; processor.prepareToPlay(rate, 64); setHalo(processor, 100); setMode(processor, mode);
@@ -134,5 +134,5 @@ void upgradeChecks(const juce::File& docs)
         require(timings[7600] < 64.0 / rate * 1000000 * .5, "audio callback approaches its realtime deadline");
     }
     require(docs.getChildFile("CPU.csv").replaceWithText(performance), "CPU report write failed");
-    std::cout << "DSP-only full-macro CPU/callback benchmarks: all four modes at four rates: PASS\n";
+    std::cout << "DSP-only full-macro CPU/callback benchmarks: all four modes at six rates: PASS\n";
 }

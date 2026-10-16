@@ -64,7 +64,7 @@ void matrix()
 {
     double worstGain = 0;
     float worstPeak = 0;
-    for (double rate : { 44100.0, 48000.0, 88200.0, 96000.0 })
+    for (double rate : { 44100.0, 48000.0, 88200.0, 96000.0, 176400.0, 192000.0 })
         for (int channels : { 1, 2 })
             for (int mode = 0; mode < 4; ++mode)
             for (float amount : { 0.0f, 25.0f, 50.0f, 75.0f, 100.0f })
@@ -108,13 +108,13 @@ void matrix()
                 worstGain = std::max(worstGain, std::abs(gain));
                 p.releaseResources();
             }
-    std::cout << "160 mode/rate/layout/HALO cases, buffers 1/17/64/127/256/512: PASS; max RMS change "
+    std::cout << "240 mode/rate/layout/HALO cases, buffers 1/17/64/127/256/512: PASS; max RMS change "
               << worstGain << " dB, peak " << worstPeak << '\n';
 }
 void silenceAndLoud()
 {
     juce::MidiBuffer midi;
-    for (double rate : { 44100.0, 48000.0, 88200.0, 96000.0 })
+    for (double rate : { 44100.0, 48000.0, 88200.0, 96000.0, 176400.0, 192000.0 })
         for (int channels : { 1, 2 })
         for (int mode = 0; mode < 4; ++mode)
         {
@@ -450,7 +450,7 @@ void host(const juce::File& bundle)
     require(halo != nullptr && halo->isAutomatable(), "hosted HALO parameter missing");
     require(mode != nullptr && mode->isAutomatable(), "hosted MODE parameter missing");
     juce::MidiBuffer midi;
-    for (double rate : { 44100.0, 48000.0, 88200.0, 96000.0 })
+    for (double rate : { 44100.0, 48000.0, 88200.0, 96000.0, 176400.0, 192000.0 })
     for (int channels : { 1, 2 })
     for (int modeIndex = 0; modeIndex < 4; ++modeIndex)
     for (float amount : { 0.0f, .25f, .5f, .75f, 1.0f })

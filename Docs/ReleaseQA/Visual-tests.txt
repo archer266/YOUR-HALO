@@ -1,0 +1,28 @@
+Start testing: Oct 15 21:53 Pacific Daylight Time
+----------------------------------------------------------
+2/2 Testing: HaloVisualTests
+2/2 Test: HaloVisualTests
+Command: "C:/Users/Admin/Desktop/Coding Projects/YOUR HALO/build/Release/HaloTests.exe" "--visual" "C:/Users/Admin/Desktop/Coding Projects/YOUR HALO/build/YOUR_HALO_artefacts/Release/VST3/YOUR HALO.vst3/Contents/x86_64-win/../.." "C:/Users/Admin/Desktop/Coding Projects/YOUR HALO/dist/YOUR HALO.vst3" "C:/Users/Admin/Desktop/Coding Projects/YOUR HALO/Docs/DSPUpgrade"
+Directory: C:/Users/Admin/Desktop/Coding Projects/YOUR HALO/build
+"HaloVisualTests" start time: Oct 15 21:53 Pacific Daylight Time
+Output:
+----------------------------------------------------------
+Retained 1.0.0 versus upgraded VST3: intentional audio change, preserved dry endpoint, old state, identifiers and zero latency across 60 settings/rates/layouts (7304040 samples); normalized output difference 0.272145: PASS
+Retained 1.0.0 versus upgraded VST3: intentional audio change, preserved dry endpoint, old state, identifiers and zero latency across 60 settings/rates/layouts (7304040 samples); normalized output difference 0.272145: PASS
+Lock-free RMS/peak accuracy, freshness, silence decay and lifecycle at all rates/layouts: PASS
+HALO/MODE IDs, automation attachment, mode selectors, arrow keys, wheel, vertical drag, double-click and hit testing: PASS
+20 actual-audio visual states, four DPI renders, 24-second/1440-frame five-stage animation, micro-pulse, idle/silence/stopped-host recovery: PASS
+Rendered idle inner RGB change: 4.42417/255
+120-second six-phase continuity at 30/45/60 FPS, smooth expressive pulse and visible idle inner-light pixel motion: PASS; maximum expansion 4.39929%; maximum speed 2.1x; mean idle inner RGB change 4.42417/255
+Concurrent 64-sample audio plus real JUCE timer at requested 30 FPS: PASS, 29.6875 FPS; median/p95 full UI offscreen paint 3.5273/4.7702 ms; callback 0.02/0.0284 ms; upgraded engine median 0.019 ms
+Concurrent 64-sample audio plus real JUCE timer at requested 45 FPS: PASS, 44.0625 FPS; median/p95 full UI offscreen paint 3.089/4.8108 ms; callback 0.0157/0.026 ms; upgraded engine median 0.0142 ms
+Concurrent 64-sample audio plus real JUCE timer at requested 60 FPS: PASS, 59.6875 FPS; median/p95 full UI offscreen paint 3.0459/4.8794 ms; callback 0.0158/0.0279 ms; upgraded engine median 0.0136 ms
+<end of output>
+Test time =  94.59 sec
+----------------------------------------------------------
+Test Passed.
+"HaloVisualTests" end time: Oct 15 21:54 Pacific Daylight Time
+"HaloVisualTests" time elapsed: 00:01:34
+----------------------------------------------------------
+
+End testing: Oct 15 21:54 Pacific Daylight Time

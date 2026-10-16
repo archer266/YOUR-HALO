@@ -1,51 +1,57 @@
-# YOUR HALO · VoxxLab
+# YOUR HALO v1.0.0 ? VoxxLab
 
-A Windows x64 JUCE 8 / C++17 VST3 vocal enhancer with an automatable HALO macro and four processing modes, a 500 × 600 custom interface and zero reported latency.
+A Windows x64 VST3 vocal enhancer built with JUCE 8.0.12 and C++17. The HALO orb controls the amount from 0?100%; the existing AURA, GLOW, SHINE and ASCEND selectors choose balanced, warm, bright or dramatic processing character.
 
-**Current source: four-mode DSP upgrade with a 60 FPS fluid aurora orb.** The original 1.0.0 package remains in `dist`; the updated orb VST3 is in `build/YOUR_HALO_artefacts/Release/VST3/YOUR HALO.vst3`. No new final release has been packaged and the plugin version/identifiers remain 1.0.0. See the [DSP and visual upgrade report](Docs/DSPUpgrade/Report.md) and [captured interactive preview](Docs/DSPUpgrade/Preview.html).
+## Download and install
 
-Presence → air → harmonic glow → dynamic harshness protection → high-passed stereo side enhancement → level compensation and peak safety. HALO starts at zero, with exact dry output at the settled endpoint. No FFT, lookahead or delay buffer is used.
+Download the [official v1.0.0 release](https://github.com/scryingorb/YOUR-HALO/releases/tag/v1.0.0):
 
-## Use the build
+- `YOUR-HALO-1.0.0-Windows-x64-Setup.exe`: Windows installer with uninstall support.
+- `YOUR-HALO-1.0.0-Windows-x64.zip`: clean manual-install VST3 distribution.
+- `SHA256SUMS.txt`: download integrity checksums.
 
-The current development bundle is `build/YOUR_HALO_artefacts/Release/VST3/YOUR HALO.vst3`. The original public 1.0.0 bundle and ZIP remain in `dist`. Copy the entire bundle, preserving its `Contents` folder, to `C:\Program Files\Common Files\VST3\VoxxLab\YOUR HALO.vst3`, then scan verified plugins in FL Studio. See [installation and DAW acceptance steps](Docs/FL-Studio.md).
+Close your DAW. Run the installer, or extract the ZIP and copy the complete `YOUR HALO.vst3` bundle to `C:\Program Files\Common Files\VST3\VoxxLab`. Preserve its `Contents` folder. Rescan VST3 plugins in your DAW; in FL Studio, use **Options > Manage plugins > Find installed plugins**. See [Windows installation](Docs/Windows-Installation.md).
 
-Drag HALO, use the mouse wheel or arrow keys, and double-click to reset. The host saves and automates the `halo` parameter (0–100%, default 0). Input and output channel layouts must match: mono or stereo.
+Requirements: Windows 10 or later and a 64-bit VST3 host. The plugin is not a standalone application. Installer and plugin are unsigned.
 
-## Build and test
+## Sound and controls
 
-Install Visual Studio Build Tools with desktop C++, a Windows SDK and CMake 3.22+. JUCE is pinned to 8.0.12. Use an existing JUCE source checkout to build offline, or omit the path to fetch that version from GitHub.
+Tone shaping ? stereo-linked soft-knee compression plus parallel density ? band-limited harmonic saturation ? presence/air/excitement ? dynamic harshness control ? high-passed existing-side enhancement ? soft sample-peak protection.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -CMakePath 'C:\path\to\cmake.exe' -JucePath 'C:\path\to\JUCE'
-# Packaging is deferred during DSP and visual development.
-```
+- **AURA:** balanced vocal polish.
+- **GLOW:** warmer body and richer harmonics.
+- **SHINE:** open air and forward presence.
+- **ASCEND:** the strongest density and existing-side enhancement.
 
-On this workstation, the build script can reuse the configured CMake executable and JUCE dependency from `build/CMakeCache.txt`; omit the path arguments to reuse them. The existing dependency is read only; compilation outputs belong to this project. On a fresh checkout, provide the tools as above or put CMake on PATH. The commands use a process-scoped execution policy for these local scripts and do not change the machine's policy.
+Drag or scroll the orb, use arrow keys for fine changes, and double-click to reset. Settled HALO zero is neutral, with 35 ms smoothing and zero reported latency. Both `halo` and `mode` are automatable and saved with sessions. Original plugin/HALO identifiers remain; older sessions without MODE restore AURA. Mono and stereo input/output layouts must match.
+
+The pearl/gold interface retains the official embedded HALO artwork and continuous, audio-reactive aurora light. No external desktop artwork is needed at runtime.
+
+## Validation and limitations
+
+The release was tested at 44.1/48/88.2/96/176.4/192 kHz with mono/stereo, multiple buffer sizes, automation, state recall, zero/overload/silence behavior, repeated editor lifecycles and scaled UI renders. Tracktion pluginval strictness 5 passed command-line validation. Installer payload hashes, installed VST3 host tests, uninstall and extracted ZIP contents were checked. See the [release QA report](Docs/ReleaseQA/Report.md) and [CHANGELOG](CHANGELOG.md).
+
+Native DAW GUI testing, real-vocal listening, hardware DPI transitions and default all-users/UAC installation were not performed. FL Studio and other hosts therefore remain manual acceptance checks. Pluginval GUI tests and Steinberg's separate validator were not run. Peak protection is not true-peak limiting; nonlinear processing is not oversampled. These limitations are documented rather than represented as passed tests.
+
+## Build from source
+
+Use Visual Studio desktop C++ tools, a Windows SDK and CMake 3.22+. CMake fetches JUCE 8.0.12 if `HALO_JUCE_PATH` is omitted; an existing checkout can be supplied explicitly.
 
 ```powershell
 cmake -S . -B build -A x64 -DHALO_JUCE_PATH=C:/path/to/JUCE
 cmake --build build --config Release --parallel 2
-ctest --test-dir build -C Release --output-on-failure
+ctest --test-dir build -C Release -R '^HaloTests$' --output-on-failure
 ```
 
-Tests load the built VST3, so the VST3 target is a dependency of the test executable. Set `-DHALO_BUILD_TESTS=OFF` for a plugin-only build. The MSVC runtime is linked statically.
+The core suite does not require compiled reference artifacts. The additional `HaloVisualTests` historical comparison requires the retained prototype at `dist/YOUR HALO.vst3`, intentionally not tracked in Git. In a development workspace containing that reference, `ctest --test-dir build -C Release --output-on-failure` runs both suites. `build.ps1` performs the complete build/test workflow for that workspace; it supports explicit CMake and JUCE paths. Use `-DHALO_BUILD_TESTS=OFF` for a plugin-only build.
 
-`HaloVisualTests` checks compatibility against the retained `dist/YOUR HALO.vst3` release and the previous development build, confirming the intentional audio change and the exact dry endpoint. The saved 1.0.0 state fixture lives in `Tests/Fixtures`. Both CTest suites write their measurements, A/B WAVs, screenshots and animation frames into `Docs/DSPUpgrade`. Open [the local review](Docs/DSPUpgrade/Review.html) for mode screenshots and synthetic listening examples.
+Output: `build/YOUR_HALO_artefacts/Release/VST3/YOUR HALO.vst3`.
 
-## Source layout
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\package.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\build-installer.ps1
+```
 
-- `Source/DSP`: allocation-free, sample-by-sample engine and minimum-phase filters.
-- `Source/PluginProcessor.*`: host buses, HALO APVTS, state and audio lifecycle.
-- `Source/PluginEditor.*`: branding and component placement.
-- `Source/Metering`: lock-free input RMS/peak observer, separate from DSP.
-- `Source/UI`: parameter-attached vector orb, lighting caches and animation model.
-- `Assets`: original official HALO artwork, embedded through JUCE BinaryData; no runtime image-file dependency.
-- `Tests`: DSP, automation, state, GUI lifecycle, memory and actual VST3 host regression tests.
-- `Docs`: [architecture and HALO mapping](Docs/Architecture.md), [verification](Docs/Verification.md), UI snapshots and FL Studio instructions.
+ZIP output: `dist/releases/1.0.0`. Installer output: `dist/installer`; Inno Setup 6.3+ is required. [Installer build/test documentation](Docs/Installer.md) includes the isolated per-user smoke-test procedure. All binary outputs remain ignored; GitHub Releases carries downloadable artifacts. The retained early prototype is not overwritten.
 
-## Validation limits
-
-The Release x64 VST3 builds and passes automated processing and host-loading tests. FL Studio interactive scanning, listening on recorded vocals, automation recording, high-DPI interaction and `.flp` save/reopen are still manual acceptance tasks. See the verification report for measurements and limitations.
-
-Framework notices are preserved in `ThirdPartyLicenses`. JUCE's source license is included; this project does not choose a commercial JUCE plan on behalf of VoxxLab.
+Source is in `Source/`, required embedded artwork in `Assets/`, tests in `Tests/`, and dependency notices in `ThirdPartyLicenses/`. JUCE licensing obligations remain applicable; bundled notices do not grant a commercial JUCE entitlement. The [architecture](Docs/Architecture.md) and [DSP design report](Docs/DSPUpgrade/Report.md) describe the existing engine. Older visual-development reports are historical snapshots, not final release acceptance claims.

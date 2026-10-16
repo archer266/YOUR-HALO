@@ -78,7 +78,7 @@ void preserveSound(const juce::File& currentBundle, const juce::File& referenceB
     juce::MidiBuffer midi;
     std::uint64_t samples = 0;
     double differencePower = 0, referencePower = 0;
-    for (double rate : { 44100.0, 48000.0, 88200.0, 96000.0 })
+    for (double rate : { 44100.0, 48000.0, 88200.0, 96000.0, 176400.0, 192000.0 })
         for (int channels : { 1, 2 })
             for (float amount : { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f })
             {
@@ -123,13 +123,13 @@ void preserveSound(const juce::File& currentBundle, const juce::File& referenceB
                 reference->releaseResources(); current->releaseResources();
             }
     check(differencePower > referencePower * .01, "DSP upgrade remains too close to the subtle original");
-    std::cout << "Retained 1.0.0 versus upgraded VST3: intentional audio change, preserved dry endpoint, old state, identifiers and zero latency across 40 settings/rates/layouts ("
+    std::cout << "Retained 1.0.0 versus upgraded VST3: intentional audio change, preserved dry endpoint, old state, identifiers and zero latency across 60 settings/rates/layouts ("
               << samples << " samples); normalized output difference " << std::sqrt(differencePower / referencePower) << ": PASS\n";
 }
 void meterTests()
 {
     juce::MidiBuffer midi;
-    for (double rate : { 44100.0, 48000.0, 88200.0, 96000.0 })
+    for (double rate : { 44100.0, 48000.0, 88200.0, 96000.0, 176400.0, 192000.0 })
         for (int channels : { 1, 2 })
         {
             HaloProcessor p; setLayout(p, channels); p.prepareToPlay(rate, 64);
@@ -148,7 +148,10 @@ void meterTests()
             check(active.peak > 0.295f && active.peak <= 0.301f, "peak meter inaccurate");
             check(active.sequence != initial.sequence, "meter freshness not advancing");
             juce::AudioBuffer<float> silence(channels, 64);
-            for (int block = 0; block < 4000; ++block) { silence.clear(); p.processBlock(silence, midi); }
+            // Hold silence for two actual seconds at every sample rate.
+            // A fixed block count was too short at 176.4/192 kHz.
+            const int decayBlocks = static_cast<int>(std::ceil(rate * 2.0 / 64));
+            for (int block = 0; block < decayBlocks; ++block) { silence.clear(); p.processBlock(silence, midi); }
             const auto idle = p.getVisualMeters();
             check(idle.rms < 1.0e-6f && idle.peak < 1.0e-6f, "audio meter does not decay");
             p.releaseResources();
