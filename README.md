@@ -1,3 +1,5 @@
+![YOUR HALO vocal enhancer screenshot](Docs/Screenshots/Screenshot%202026-10-17%20000439.png)
+
 # YOUR HALO v1.0.0 ? VoxxLab
 
 A Windows x64 VST3 vocal enhancer built with JUCE 8.0.12 and C++17. The HALO orb controls the amount from 0?100%; the existing AURA, GLOW, SHINE and ASCEND selectors choose balanced, warm, bright or dramatic processing character.
